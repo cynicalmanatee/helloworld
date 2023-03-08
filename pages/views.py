@@ -45,9 +45,30 @@ def homePost(request):
         return HttpResponseRedirect(reverse('results', kwargs={'choice':choice,'gmat':gmat},))
         
 
+      
+import pickle
+import pandas as pd
+
 def results(request, choice, gmat):
     print("*** Inside reults()")
-    return render(request, 'results.html', {'choice': choice, 'gmat':gmat})
+    # load saved model
+    with open('../model_pkl' , 'rb') as f:
+        loadedModel = pickle.load(f)
 
+    # Create a single prediction.
+    singleSampleDf = pd.DataFrame(columns=['gmat', 'work_experience'])
 
+    workExperience = float(choice)
+    print("*** GMAT Score: " + str(gmat))
+    print("*** Years experience: " + str(workExperience))
+    singleSampleDf = singleSampleDf.append({'gmat':gmat,
+                                            'work_experience':workExperience},
+                                        ignore_index=True)
+
+    singlePrediction = loadedModel.predict(singleSampleDf)
+
+    print("Single prediction: " + str(singlePrediction))
+
+    return render(request, 'results.html', {'choice': workExperience, 'gmat':gmat, 
+                'prediction':singlePrediction})
 
